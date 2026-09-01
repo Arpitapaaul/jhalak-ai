@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_34-76294710e1004fbe069d97ba0349e700bc45418c",
+  "solcVersion": "0.8.34",
+  "solcLongVersion": "0.8.34+commit.80d5c536",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.15.0"
+  },
+  "userSourceNameMap": {
+    "contracts/Counter.sol": "project/contracts/Counter.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "osaka",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/Counter.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ncontract FaceVerification {\n\n    struct Verification {\n        bytes32 imageHash;\n        uint256 similarityScore;\n        bool isMatch;\n        uint256 timestamp;\n    }\n\n    uint256 public verificationCount;\n\n    mapping(uint256 => Verification) public verifications;\n\n    event VerificationStored(\n        uint256 indexed verificationId,\n        bytes32 indexed imageHash,\n        uint256 similarityScore,\n        bool isMatch,\n        uint256 timestamp\n    );\n\n    function storeVerification(\n        bytes32 imageHash,\n        uint256 similarityScore,\n        bool isMatch\n    ) external {\n\n        verificationCount++;\n\n        verifications[verificationCount] = Verification({\n            imageHash: imageHash,\n            similarityScore: similarityScore,\n            isMatch: isMatch,\n            timestamp: block.timestamp\n        });\n\n        emit VerificationStored(\n            verificationCount,\n            imageHash,\n            similarityScore,\n            isMatch,\n            block.timestamp\n        );\n    }\n\n    function getVerification(\n        uint256 verificationId\n    )\n        external\n        view\n        returns (\n            bytes32 imageHash,\n            uint256 similarityScore,\n            bool isMatch,\n            uint256 timestamp\n        )\n    {\n        Verification memory verification =\n            verifications[verificationId];\n\n        return (\n            verification.imageHash,\n            verification.similarityScore,\n            verification.isMatch,\n            verification.timestamp\n        );\n    }\n}"
+      }
+    }
+  }
+}

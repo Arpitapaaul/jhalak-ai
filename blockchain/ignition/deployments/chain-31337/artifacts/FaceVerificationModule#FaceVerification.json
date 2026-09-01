@@ -1,0 +1,155 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "FaceVerification",
+  "sourceName": "contracts/Counter.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "verificationId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "imageHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "similarityScore",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "isMatch",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "VerificationStored",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "verificationId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getVerification",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "imageHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "similarityScore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isMatch",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "imageHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "similarityScore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isMatch",
+          "type": "bool"
+        }
+      ],
+      "name": "storeVerification",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "verificationCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "verifications",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "imageHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "similarityScore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isMatch",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052348015600e575f5ffd5b5061029f8061001c5f395ff3fe608060405234801561000f575f5ffd5b506004361061004a575f3560e01c80630830e22e1461004e57806358937cc8146100695780638fe82d23146100eb578063b90b0a1014610100575b5f5ffd5b6100565f5481565b6040519081526020015b60405180910390f35b6100c56100773660046101f4565b5f908152600160208181526040928390208351608081018552815480825293820154928101839052600282015460ff1615159481018590526003909101546060909101819052919390929190565b604080519485526020850193909352901515918301919091526060820152608001610060565b6100fe6100f936600461020b565b610138565b005b6100c561010e3660046101f4565b600160208190525f91825260409091208054918101546002820154600390920154909160ff169084565b5f8054908061014683610245565b90915550506040805160808101825284815260208082018581528415158385018181524260608087018281525f8054815260018089528a822099518a55965196890196909655925160028801805460ff191691151591909117905591516003909601959095559154855188815293840191909152938201929092528592917f4a9e9ba7f48dcdc53f1e3a7ff696a8d71f0af0f99a90d06660b5e5f7b0545df3910160405180910390a3505050565b5f60208284031215610204575f5ffd5b5035919050565b5f5f5f6060848603121561021d575f5ffd5b83359250602084013591506040840135801515811461023a575f5ffd5b809150509250925092565b5f6001820161026257634e487b7160e01b5f52601160045260245ffd5b506001019056fea26469706673582212206145441636b05dd3705b0d9529c054b6a79dc1115968c67b28530fe4db7ea4a664736f6c63430008220033",
+  "deployedBytecode": "0x608060405234801561000f575f5ffd5b506004361061004a575f3560e01c80630830e22e1461004e57806358937cc8146100695780638fe82d23146100eb578063b90b0a1014610100575b5f5ffd5b6100565f5481565b6040519081526020015b60405180910390f35b6100c56100773660046101f4565b5f908152600160208181526040928390208351608081018552815480825293820154928101839052600282015460ff1615159481018590526003909101546060909101819052919390929190565b604080519485526020850193909352901515918301919091526060820152608001610060565b6100fe6100f936600461020b565b610138565b005b6100c561010e3660046101f4565b600160208190525f91825260409091208054918101546002820154600390920154909160ff169084565b5f8054908061014683610245565b90915550506040805160808101825284815260208082018581528415158385018181524260608087018281525f8054815260018089528a822099518a55965196890196909655925160028801805460ff191691151591909117905591516003909601959095559154855188815293840191909152938201929092528592917f4a9e9ba7f48dcdc53f1e3a7ff696a8d71f0af0f99a90d06660b5e5f7b0545df3910160405180910390a3505050565b5f60208284031215610204575f5ffd5b5035919050565b5f5f5f6060848603121561021d575f5ffd5b83359250602084013591506040840135801515811461023a575f5ffd5b809150509250925092565b5f6001820161026257634e487b7160e01b5f52601160045260245ffd5b506001019056fea26469706673582212206145441636b05dd3705b0d9529c054b6a79dc1115968c67b28530fe4db7ea4a664736f6c63430008220033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/Counter.sol",
+  "buildInfoId": "solc-0_8_34-76294710e1004fbe069d97ba0349e700bc45418c"
+}

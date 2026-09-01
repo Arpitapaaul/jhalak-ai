@@ -1,0 +1,1 @@
+export default function Header() { return <header className="topbar"><div className="brand"><div className="brand-mark">F</div><div><p className="brand-name">FaceChain Verify</p><p className="brand-subtitle">AI-Powered Face Verification &amp; Digital Provenance</p></div></div><div className="secure-chip"><span className="secure-dot" />Demo environment</div></header> }

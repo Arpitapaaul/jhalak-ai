@@ -1,0 +1,2 @@
+import CandidateCard from './CandidateCard'
+export default function CandidateList({ candidates }) { return <section className="card full-section"><div className="card-heading"><h2>Candidate results</h2><span className="step">{candidates.length} FOUND</span></div><div className="candidate-list">{candidates.map((candidate)=><CandidateCard key={candidate.rank} candidate={candidate}/>)}</div></section> }

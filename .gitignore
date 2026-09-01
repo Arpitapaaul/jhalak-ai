@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+
+# Hardhat generated files
+blockchain/cache/
+blockchain/artifacts/
+
+# IDE
+.vscode/
+.idea/
+
+# Generated candidate images
+sample/candidates/

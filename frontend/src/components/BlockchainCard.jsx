@@ -1,0 +1,1 @@
+export default function BlockchainCard() { return <section className="card blockchain"><div className="block-icon">◇</div><div><h2 className="section-title">Blockchain</h2><p>Blockchain verification coming soon</p></div></section> }
