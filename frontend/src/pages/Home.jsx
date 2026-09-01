@@ -1,4 +1,460 @@
 import { useState } from 'react'
-import Header from '../components/Header'; import ImageUpload from '../components/ImageUpload'; import VerificationResult from '../components/VerificationResult'; import CandidateList from '../components/CandidateList'; import FingerprintCard from '../components/FingerprintCard'; import BlockchainCard from '../components/BlockchainCard'
-const candidates=[{rank:1,title:'time flies faster ❤️',source:'Instagram',score:'0.5639',match:true,image:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=85'},{rank:2,title:'Golden hour moments',source:'Facebook',score:'0.4872',match:false,image:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=85'},{rank:3,title:'Portrait archive',source:'X / Twitter',score:'0.4145',match:false,image:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=500&q=85'}]
-export default function Home() { const [loading,setLoading]=useState(false),[complete,setComplete]=useState(false); const verify=()=>{setLoading(true);setComplete(false);setTimeout(()=>{setLoading(false);setComplete(true)},1200)}; const best=candidates[0]; return <div className="app-shell"><Header/><main className="dashboard"><section className="intro"><div><span className="eyebrow">Reverse image intelligence</span><h1>Verify a digital identity</h1><p>Search image provenance and compare face embeddings with confidence.</p></div><div className="scan-meta">SYSTEM STATUS · READY</div></section><div className="layout"><ImageUpload onVerify={verify} loading={loading}/><div className="results-panel"><VerificationResult complete={complete}/><section className="card candidate-feature"><div className="card-heading"><h2>Best candidate</h2><span className="step">TOP RESULT</span></div><div className="candidate-content"><img className="candidate-image" src={best.image} alt={best.title}/><div><span className="score-pill">{best.score}</span><span className="candidate-rank">CANDIDATE #{best.rank}</span><h3 className="candidate-title">{best.title}</h3><span className="candidate-source">Source: {best.source}</span><br/><a className="candidate-link" href="https://www.instagram.com/" target="_blank" rel="noreferrer">View social media post ↗</a></div></div></section></div></div><CandidateList candidates={candidates}/><div className="bottom-grid"><FingerprintCard/><BlockchainCard/></div></main></div> }
+
+import Header from '../components/Header'
+import ImageUpload from '../components/ImageUpload'
+import VerificationResult from '../components/VerificationResult'
+import CandidateList from '../components/CandidateList'
+import FingerprintCard from '../components/FingerprintCard'
+import BlockchainCard from '../components/BlockchainCard'
+
+
+export default function Home() {
+
+  const [loading, setLoading] = useState(false)
+  const [complete, setComplete] = useState(false)
+
+  const [verificationData, setVerificationData] = useState(null)
+
+
+  // ---------------------------------------
+  // VERIFY UPLOADED IMAGE
+  // ---------------------------------------
+
+  const verify = async (file) => {
+
+    if (!file) {
+      alert('Please upload an image first.')
+      return
+    }
+
+
+    console.log('Uploaded file:', file)
+    console.log('File name:', file.name)
+    console.log('File type:', file.type)
+    console.log('File size:', file.size)
+
+
+    setLoading(true)
+    setComplete(false)
+    setVerificationData(null)
+
+
+    try {
+
+      // -----------------------------------
+      // CREATE FORM DATA
+      // -----------------------------------
+
+      const formData = new FormData()
+
+      formData.append(
+        'file',
+        file
+      )
+
+
+      console.log(
+        'Sending image to backend...'
+      )
+
+
+      // -----------------------------------
+      // CALL FASTAPI BACKEND
+      // -----------------------------------
+
+      const response = await fetch(
+        'http://127.0.0.1:8000/verify',
+        {
+          method: 'POST',
+          body: formData
+        }
+      )
+
+
+      console.log(
+        'Backend response status:',
+        response.status
+      )
+
+
+      // -----------------------------------
+      // CHECK RESPONSE
+      // -----------------------------------
+
+      if (!response.ok) {
+
+        const errorText =
+          await response.text()
+
+        throw new Error(
+          `Backend error ${response.status}: ${errorText}`
+        )
+      }
+
+
+      // -----------------------------------
+      // READ JSON RESULT
+      // -----------------------------------
+
+      const data =
+        await response.json()
+
+
+      console.log(
+        'Backend result:',
+        data
+      )
+
+
+      // -----------------------------------
+      // SAVE RESULT
+      // -----------------------------------
+
+      setVerificationData(data)
+
+      setComplete(true)
+
+
+    } catch (error) {
+
+      console.error(
+        'Verification failed:',
+        error
+      )
+
+      alert(
+        'Verification failed. Check the backend terminal.'
+      )
+
+      setComplete(false)
+
+
+    } finally {
+
+      // -----------------------------------
+      // STOP LOADING
+      // -----------------------------------
+
+      setLoading(false)
+    }
+  }
+
+
+  // ---------------------------------------
+  // DEFAULT CANDIDATE DATA
+  // ---------------------------------------
+
+  const defaultCandidate = {
+    rank: 1,
+    title: 'No candidate yet',
+    source: '—',
+    score: '—',
+    match: false,
+    image:
+  verificationData?.candidate_image
+    ? `http://127.0.0.1:8000/candidates/${verificationData.candidate_image}`
+    : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=85'
+  }
+
+
+  // ---------------------------------------
+  // BACKEND CANDIDATE DATA
+  // ---------------------------------------
+const bestCandidate = verificationData
+  ? {
+      rank: 1,
+
+      title:
+        verificationData.source_url
+          ? 'Matching social media result'
+          : 'No candidate found',
+
+      source:
+        verificationData.source_url
+          ? 'Social Media'
+          : '—',
+
+      score:
+        typeof verificationData.similarity === 'number'
+          ? verificationData.similarity.toFixed(4)
+          : '—',
+
+      match:
+        verificationData.match === true,
+
+      image:
+        verificationData?.candidate_image
+          ? `http://127.0.0.1:8000/candidates/${verificationData.candidate_image}`
+          : ''
+    }
+  : defaultCandidate
+
+  // ---------------------------------------
+  // CANDIDATE LIST
+  // ---------------------------------------
+
+ const candidates = verificationData?.candidates?.length
+  ? verificationData.candidates.map((candidate) => ({
+      rank: candidate.rank,
+      title: candidate.title,
+      source: candidate.source,
+      score:
+        typeof candidate.score === 'number'
+          ? candidate.score.toFixed(4)
+          : '—',
+      match: candidate.match === true,
+      image: `http://127.0.0.1:8000/candidates/${candidate.image}`,
+      link: candidate.link
+    }))
+  : []
+
+
+  // ---------------------------------------
+  // SOCIAL MEDIA URL
+  // ---------------------------------------
+
+  const sourceUrl =
+    verificationData?.source_url || '#'
+
+
+  // ---------------------------------------
+  // MATCH STATUS
+  // ---------------------------------------
+
+  const matchStatus =
+    verificationData?.match === true
+      ? 'MATCH'
+      : verificationData
+        ? 'NO MATCH'
+        : 'READY'
+
+
+  return (
+
+    <div className="app-shell">
+
+      <Header />
+
+
+      <main className="dashboard">
+
+
+        {/* =================================
+            INTRO
+        ================================= */}
+
+        <section className="intro">
+
+          <div>
+
+            <span className="eyebrow">
+              Reverse image intelligence
+            </span>
+
+
+            <h1>
+              Verify a digital identity
+            </h1>
+
+
+            <p>
+              Search image provenance and compare
+              face embeddings with confidence.
+            </p>
+
+          </div>
+
+
+          <div className="scan-meta">
+
+            SYSTEM STATUS ·{' '}
+
+            {loading
+              ? 'VERIFYING'
+              : complete
+                ? matchStatus
+                : 'READY'}
+
+          </div>
+
+        </section>
+
+
+        {/* =================================
+            UPLOAD + RESULT
+        ================================= */}
+
+        <div className="layout">
+
+
+          {/* =================================
+              IMAGE UPLOAD
+          ================================= */}
+
+          <ImageUpload
+
+            onVerify={verify}
+
+            loading={loading}
+
+          />
+
+
+          <div className="results-panel">
+
+
+            {/* =================================
+                VERIFICATION RESULT
+            ================================= */}
+
+            <VerificationResult
+
+              complete={complete}
+
+            />
+
+
+            {/* =================================
+                BEST CANDIDATE
+            ================================= */}
+
+            <section className="card candidate-feature">
+
+
+              <div className="card-heading">
+
+                <h2>
+                  Best candidate
+                </h2>
+
+
+                <span className="step">
+                  TOP RESULT
+                </span>
+
+              </div>
+
+
+              <div className="candidate-content">
+
+
+                <img
+
+                  className="candidate-image"
+
+                  src={bestCandidate.image}
+
+                  alt="Candidate result"
+
+                />
+
+
+                <div>
+
+
+                  {/* SCORE */}
+
+                  <span className="score-pill">
+
+                    {bestCandidate.score}
+
+                  </span>
+
+
+                  {/* RANK */}
+
+                  <span className="candidate-rank">
+
+                    CANDIDATE #{bestCandidate.rank}
+
+                  </span>
+
+
+                  {/* TITLE */}
+
+                  <h3 className="candidate-title">
+
+                    {bestCandidate.title}
+
+                  </h3>
+
+
+                  {/* SOURCE */}
+
+                  <span className="candidate-source">
+
+                    Source: {bestCandidate.source}
+
+                  </span>
+
+
+                  <br />
+
+
+                  {/* SOCIAL MEDIA LINK */}
+
+                  {sourceUrl !== '#' && (
+
+                    <a
+
+                      className="candidate-link"
+
+                      href={sourceUrl}
+
+                      target="_blank"
+
+                      rel="noreferrer"
+
+                    >
+
+                      View social media post ↗
+
+                    </a>
+
+                  )}
+
+                </div>
+
+              </div>
+
+            </section>
+
+          </div>
+
+        </div>
+
+
+        {/* =================================
+            CANDIDATE LIST
+        ================================= */}
+
+        <CandidateList
+
+          candidates={candidates}
+
+        />
+
+
+        {/* =================================
+            FINGERPRINT + BLOCKCHAIN
+        ================================= */}
+
+        <div className="bottom-grid">
+
+
+          <FingerprintCard />
+
+
+          <BlockchainCard
+  verificationData={verificationData}
+       />
+
+
+        </div>
+
+
+      </main>
+
+    </div>
+  )
+}
