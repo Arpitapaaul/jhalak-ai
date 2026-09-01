@@ -15,7 +15,7 @@ class BlockchainService:
         self.rpc_url = "http://127.0.0.1:8545"
 
         # -----------------------------------
-        # DEPLOYED FACE VERIFICATION CONTRACT
+        # DEPLOYED CONTRACT ADDRESS
         # -----------------------------------
 
         self.contract_address = (
@@ -25,13 +25,15 @@ class BlockchainService:
         # -----------------------------------
         # HARDHAT LOCAL ACCOUNT #0
         # -----------------------------------
+        # This is Hardhat's public test account.
+        # Use this ONLY for local development.
 
         self.private_key = (
             "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
         )
 
         # -----------------------------------
-        # CONNECT TO LOCAL BLOCKCHAIN
+        # CONNECT TO HARDHAT
         # -----------------------------------
 
         self.w3 = Web3(
@@ -56,7 +58,7 @@ class BlockchainService:
         )
 
         # -----------------------------------
-        # LOAD FACE VERIFICATION ABI
+        # LOAD CONTRACT ABI
         # -----------------------------------
 
         abi_path = (
@@ -78,7 +80,6 @@ class BlockchainService:
             "r",
             encoding="utf-8"
         ) as file:
-
             artifact = json.load(file)
 
         self.abi = artifact["abi"]
@@ -104,8 +105,8 @@ class BlockchainService:
         source_url
     ):
         """
-        Store discovered web/social-media data
-        hash and source URL on blockchain.
+        Store the hash of discovered web/social-media
+        data and its source URL on the blockchain.
         """
 
         # -----------------------------------
@@ -117,6 +118,7 @@ class BlockchainService:
                 "data_hash must be a hexadecimal string."
             )
 
+        # Remove optional 0x prefix
         data_hash = data_hash.removeprefix("0x")
 
         if len(data_hash) != 64:
@@ -135,7 +137,7 @@ class BlockchainService:
             ) from error
 
         # -----------------------------------
-        # VALIDATE URL
+        # VALIDATE SOURCE URL
         # -----------------------------------
 
         if not isinstance(source_url, str):
@@ -199,7 +201,7 @@ class BlockchainService:
         )
 
         print(
-            f"Blockchain transaction sent: "
+            "Blockchain transaction sent: "
             f"{tx_hash.hex()}"
         )
 
@@ -214,14 +216,16 @@ class BlockchainService:
             )
         )
 
-        if receipt.status != 1:
-            raise RuntimeError(
-                "Blockchain transaction failed."
-            )
+        print(
+            "Blockchain confirmation received."
+        )
 
         print(
-            f"Transaction confirmed in block "
-            f"{receipt.blockNumber}"
+            f"Block number: {receipt.blockNumber}"
+        )
+
+        print(
+            f"Transaction status: {receipt.status}"
         )
 
         # -----------------------------------
@@ -243,8 +247,8 @@ class BlockchainService:
         verification_index
     ):
         """
-        Read verification data directly
-        from the blockchain.
+        Read a previously stored verification
+        directly from the blockchain.
         """
 
         result = (
@@ -268,8 +272,8 @@ class BlockchainService:
 
     def get_verification_count(self):
         """
-        Return the total number of
-        blockchain verification records.
+        Return the total number of verifications
+        stored on the blockchain.
         """
 
         return (
@@ -277,88 +281,3 @@ class BlockchainService:
             .getVerificationCount()
             .call()
         )
-
-    # ---------------------------------------
-    # RE-VERIFY DATA AGAINST BLOCKCHAIN
-    # ---------------------------------------
-
-    def verify_against_blockchain(
-        self,
-        data_hash,
-        verification_index
-    ):
-        """
-        Compare the current data hash with
-        the hash stored on the blockchain.
-
-        Returns True if both hashes match.
-        """
-
-        # -----------------------------------
-        # VALIDATE CURRENT HASH
-        # -----------------------------------
-
-        if not isinstance(data_hash, str):
-            raise TypeError(
-                "data_hash must be a hexadecimal string."
-            )
-
-        current_hash = data_hash.removeprefix(
-            "0x"
-        ).lower()
-
-        if len(current_hash) != 64:
-            raise ValueError(
-                "data_hash must contain exactly "
-                "64 hexadecimal characters."
-            )
-
-        try:
-            bytes.fromhex(current_hash)
-        except ValueError as error:
-            raise ValueError(
-                "data_hash contains invalid hexadecimal characters."
-            ) from error
-
-        # -----------------------------------
-        # READ BLOCKCHAIN RECORD
-        # -----------------------------------
-
-        blockchain_record = (
-            self.get_verification(
-                verification_index
-            )
-        )
-
-        stored_hash = (
-            blockchain_record["data_hash"]
-            .removeprefix("0x")
-            .lower()
-        )
-
-        # -----------------------------------
-        # COMPARE HASHES
-        # -----------------------------------
-
-        is_verified = (
-            current_hash == stored_hash
-        )
-
-        # -----------------------------------
-        # RETURN VERIFICATION RESULT
-        # -----------------------------------
-
-        return {
-            "verified": is_verified,
-            "current_hash": current_hash,
-            "stored_hash": stored_hash,
-            "source_url": blockchain_record[
-                "source_url"
-            ],
-            "timestamp": blockchain_record[
-                "timestamp"
-            ],
-            "verifier": blockchain_record[
-                "verifier"
-            ]
-        }

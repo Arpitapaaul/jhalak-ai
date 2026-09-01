@@ -1,2 +1,89 @@
 import { useRef, useState } from 'react'
-export default function ImageUpload({ onVerify, loading }) { const [preview,setPreview]=useState(null); const [dragging,setDragging]=useState(false); const inputRef=useRef(null); const useFile=(file)=>{if(file?.type.startsWith('image/'))setPreview(URL.createObjectURL(file))}; return <section className="card upload-card"><div className="card-heading"><h2>Image verification</h2><span className="step">01 / UPLOAD</span></div><div className={`drop-zone ${dragging?'dragging':''}`} onDragOver={(e)=>{e.preventDefault();setDragging(true)}} onDragLeave={()=>setDragging(false)} onDrop={(e)=>{e.preventDefault();setDragging(false);useFile(e.dataTransfer.files[0])}}><input ref={inputRef} type="file" accept="image/*" aria-label="Upload an image" onChange={(e)=>useFile(e.target.files[0])}/>{preview?<img className="preview" src={preview} alt="Selected upload preview"/>:<div><div className="upload-icon">↑</div><h3>Drop a face image here</h3><p>or click to browse · JPG, PNG, WEBP supported</p></div>}</div><div className="upload-actions"><button className="button button-secondary" type="button" onClick={()=>inputRef.current?.click()}>Upload Image</button><button className="button button-primary" type="button" onClick={onVerify} disabled={loading}>{loading?'Verifying image…':'Verify Image →'}</button></div></section> }
+
+export default function ImageUpload({ onVerify, loading }) {
+  const [preview, setPreview] = useState(null)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [dragging, setDragging] = useState(false)
+
+  const inputRef = useRef(null)
+
+  const useFile = (file) => {
+    if (file?.type?.startsWith('image/')) {
+      setSelectedFile(file)
+      setPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleVerify = () => {
+    if (!selectedFile) {
+      alert('Please upload an image first.')
+      return
+    }
+
+    onVerify(selectedFile)
+  }
+
+  return (
+    <section className="card upload-card">
+      <div className="card-heading">
+        <h2>Image verification</h2>
+        <span className="step">01 / UPLOAD</span>
+      </div>
+
+      <div
+        className={`drop-zone ${dragging ? 'dragging' : ''}`}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragging(true)
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault()
+          setDragging(false)
+          useFile(e.dataTransfer.files[0])
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          aria-label="Upload an image"
+          onChange={(e) => useFile(e.target.files[0])}
+        />
+
+        {preview ? (
+          <img
+            className="preview"
+            src={preview}
+            alt="Selected upload preview"
+          />
+        ) : (
+          <div>
+            <div className="upload-icon">↑</div>
+            <h3>Drop a face image here</h3>
+            <p>or click to browse · JPG, PNG, WEBP supported</p>
+          </div>
+        )}
+      </div>
+
+      <div className="upload-actions">
+        <button
+          className="button button-secondary"
+          type="button"
+          onClick={() => inputRef.current?.click()}
+        >
+          Upload Image
+        </button>
+
+        <button
+          className="button button-primary"
+          type="button"
+          onClick={handleVerify}
+          disabled={loading}
+        >
+          {loading ? 'Verifying image…' : 'Verify Image →'}
+        </button>
+      </div>
+    </section>
+  )
+}

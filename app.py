@@ -8,7 +8,7 @@ from pipeline.matcher import FaceMatcher
 from pipeline.blockchain import BlockchainService
 
 
-def main():
+def main(image_path=None):
 
     print("===================================")
     print("   FaceChain Verify")
@@ -16,9 +16,12 @@ def main():
 
     base_path = Path(__file__).parent
 
-    image_path = (
-        base_path / "sample" / "test.jpg"
-    )
+    if image_path is None:
+        image_path = (
+            base_path / "sample" / "test.jpg"
+        )
+
+    image_path = Path(image_path)
 
     candidates_dir = (
         base_path / "sample" / "candidates"
@@ -111,7 +114,7 @@ def main():
     candidate_scores = []
 
     for index, result in enumerate(
-        social_results,
+        social_results[:5],
         start=1
     ):
 
@@ -206,13 +209,15 @@ def main():
             )
 
             candidate_scores.append({
-                "rank": index,
-                "title": result["title"],
-                "source": result["source"],
-                "link": result["link"],
-                "score": score,
-                "path": str(candidate_path)
-            })
+    "rank": index,
+    "title": result["title"],
+    "source": result["source"],
+    "link": result["link"],
+    "score": score,
+    "path": str(candidate_path),
+    "image": candidate_path.name,
+    "match": score >= 0.50
+})
 
             # -------------------------------
             # BEST CANDIDATE
@@ -376,7 +381,7 @@ def main():
         file_hash=file_hash
     )
 
-    # -------------------------------
+       # -------------------------------
     # STEP 8: BLOCKCHAIN RECORD
     # -------------------------------
 
@@ -392,11 +397,14 @@ def main():
             "Storing verification on blockchain..."
         )
 
+        # --------------------------------
+        # STORE HASH + SOURCE URL
+        # --------------------------------
+
         blockchain_result = (
             blockchain.store_verification(
-                image_hash=file_hash,
-                similarity_score=best_match["score"],
-                is_match=is_match
+                data_hash=file_hash,
+                source_url=best_match["link"]
             )
         )
 
@@ -419,87 +427,87 @@ def main():
             f"{blockchain_result['status']}"
         )
 
+        # --------------------------------
+        # READ BLOCKCHAIN RECORD
+        # --------------------------------
+
+        verification_count = (
+            blockchain.get_verification_count()
+        )
+
+        verification_index = (
+            verification_count - 1
+        )
+
+        print(
+            "\nReading verification "
+            "from blockchain..."
+        )
+
+        blockchain_record = (
+            blockchain.get_verification(
+                verification_index
+            )
+        )
+
+        print(
+            f"Stored Hash: "
+            f"{blockchain_record['data_hash']}"
+        )
+
+        print(
+            f"Stored Source URL: "
+            f"{blockchain_record['source_url']}"
+        )
+
+        # --------------------------------
+        # RE-VERIFY AGAINST BLOCKCHAIN
+        # --------------------------------
+
+        print(
+            "\nRe-verifying data "
+            "against blockchain..."
+        )
+
+        verification_result = (
+            blockchain.verify_against_blockchain(
+                data_hash=file_hash,
+                verification_index=verification_index
+            )
+        )
+
+        if verification_result["verified"]:
+
+            print(
+                "\n✅ BLOCKCHAIN VERIFIED"
+            )
+
+            print(
+                "Current hash matches "
+                "the on-chain hash."
+            )
+
+        else:
+
+            print(
+                "\n❌ BLOCKCHAIN VERIFICATION FAILED"
+            )
+
+            print(
+                "Current hash does not match "
+                "the on-chain hash."
+            )
+
     except Exception as error:
 
         print(
-            "⚠️ Blockchain storage failed:"
+            "⚠️ Blockchain verification failed:"
         )
 
         print(
             error
         )
-
-    # -------------------------------
-    # CANDIDATE SCORE SUMMARY
-    # -------------------------------
-
-    print(
-        "\n==================================="
-    )
-
-    print(
-        "Candidate Similarity Summary:"
-    )
-
-    candidate_scores.sort(
-        key=lambda x: x["score"],
-        reverse=True
-    )
-
-    for item in candidate_scores:
-
-        print(
-            f"\nRank #{item['rank']} "
-            f"| Score: {item['score']:.4f}"
-        )
-
-        print(
-            f"Title: {item['title']}"
-        )
-
-        print(
-            f"URL: {item['link']}"
-        )
-
-    # -------------------------------
-    # TOP REVERSE SEARCH RESULTS
-    # -------------------------------
-
-    print(
-        "\n==================================="
-    )
-
-    print(
-        "Top Reverse Search Results:"
-    )
-
-    for index, result in enumerate(
-        results.get(
-            "visual_matches",
-            []
-        )[:5],
-        start=1
-    ):
-
-        title = result.get(
-            "title",
-            "No title"
-        )
-
-        link = result.get(
-            "link",
-            "No link"
-        )
-
-        print(
-            f"\n{index}. {title}"
-        )
-
-        print(
-            f"   {link}"
-        )
-
-    # -------------------------------
+        # -------------------------------
     # COMPLETED
     # -------------------------------
 
@@ -512,7 +520,19 @@ def main():
     )
 
     print(
-        "===================================")
+        "==================================="
+    )
+
+    return {
+        "match": is_match,
+        "similarity": best_score,
+        "source_url": best_match["link"],
+        "candidate_image": best_candidate_path.name,
+        "candidates": candidate_scores,
+        "file_hash": file_hash,
+        "blockchain": blockchain_result,
+        "blockchain_verification": verification_result
+    }
 
 
 if __name__ == "__main__":
