@@ -19,7 +19,7 @@ class BlockchainService:
         # -----------------------------------
 
         self.contract_address = (
-            "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+             "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9"
         )
 
         # -----------------------------------
