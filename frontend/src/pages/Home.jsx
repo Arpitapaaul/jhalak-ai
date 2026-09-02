@@ -248,18 +248,18 @@ const bestCandidate = verificationData
           <div>
 
             <span className="eyebrow">
-              Reverse image intelligence
+              🌊 Powered by AI · Made for Goa
             </span>
 
 
             <h1>
-              Verify a digital identity
+              Unmask Any Face,<br />Instantly
             </h1>
 
 
             <p>
-              Search image provenance and compare
-              face embeddings with confidence.
+              Upload a photo — Jhalak.ai scans the web,
+              matches faces and reveals digital identity with confidence.
             </p>
 
           </div>
@@ -288,7 +288,7 @@ const bestCandidate = verificationData
 
 
           {/* =================================
-              IMAGE UPLOAD
+              IMAGE UPLOAD (compact)
           ================================= */}
 
           <ImageUpload
@@ -304,27 +304,16 @@ const bestCandidate = verificationData
 
 
             {/* =================================
-                VERIFICATION RESULT
+                BEST CANDIDATE  (shown first, bigger)
             ================================= */}
 
-            <VerificationResult
-
-              complete={complete}
-
-            />
-
-
-            {/* =================================
-                BEST CANDIDATE
-            ================================= */}
-
-            <section className="card candidate-feature">
+            <section className="card candidate-feature candidate-feature-big">
 
 
               <div className="card-heading">
 
                 <h2>
-                  Best candidate
+                  Best Candidate
                 </h2>
 
 
@@ -335,12 +324,12 @@ const bestCandidate = verificationData
               </div>
 
 
-              <div className="candidate-content">
+              <div className="candidate-content-big">
 
 
                 <img
 
-                  className="candidate-image"
+                  className="candidate-image-big"
 
                   src={bestCandidate.image}
 
@@ -418,6 +407,17 @@ const bestCandidate = verificationData
               </div>
 
             </section>
+
+
+            {/* =================================
+                VERIFICATION RESULT (below, compact)
+            ================================= */}
+
+            <VerificationResult
+
+              complete={complete}
+
+            />
 
           </div>
 
