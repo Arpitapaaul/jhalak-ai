@@ -10,6 +10,8 @@ from pipeline.blockchain import BlockchainService
 
 def main(image_path=None):
 
+    blockchain_result = None
+    verification_result = None
     print("===================================")
     print("   FaceChain Verify")
     print("===================================")
