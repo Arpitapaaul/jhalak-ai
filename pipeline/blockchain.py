@@ -29,7 +29,7 @@ class BlockchainService:
         self.rpc_url = os.getenv("SEPOLIA_RPC_URL")
         self.private_key = os.getenv("SEPOLIA_PRIVATE_KEY")
         self.contract_address = (
-            "0xbc199bb2f2c18146e8d7562d8fa7c4044abea270"
+            "0x5010122b7c23631140f8e11e4b276f48d7634d1b"
         )
 
         if not self.rpc_url:
