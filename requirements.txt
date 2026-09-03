@@ -7,3 +7,5 @@ python-dotenv
 streamlit
 web3
 requests
+fastapi
+uvicorn
