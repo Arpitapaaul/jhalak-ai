@@ -238,8 +238,8 @@ def main(image_path=None):
                     "title": result["title"],
                     "source": result["source"],
                     "link": result["link"],
-                    "image": image_url,
-                    "thumbnail": thumbnail_url,
+                    "image": candidate_path.name,
+                    "thumbnail": candidate_path.name,
                     "score": score
                 }
 
