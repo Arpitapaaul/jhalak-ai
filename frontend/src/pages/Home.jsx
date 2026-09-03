@@ -184,7 +184,7 @@ const bestCandidate = verificationData
 
       image:
         verificationData?.candidate_image
-          ? `http://127.0.0.1:8000/candidates/${verificationData.candidate_image}`
+          ? `https://jhalak-ai.onrender.com/candidates/${verificationData.candidate_image}`
           : ''
     }
   : defaultCandidate

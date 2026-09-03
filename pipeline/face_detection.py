@@ -6,7 +6,8 @@ class FaceDetector:
     def __init__(self):
         self.app = FaceAnalysis(
             name="buffalo_s",
-            providers=["CPUExecutionProvider"]
+            providers=["CPUExecutionProvider"],
+            allowed_modules=["detection", "recognition"]
         )
 
         self.app.prepare(ctx_id=-1)
