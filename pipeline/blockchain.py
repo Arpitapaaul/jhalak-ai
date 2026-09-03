@@ -1,6 +1,8 @@
 import json
+import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from web3 import Web3
 
 
@@ -9,29 +11,54 @@ class BlockchainService:
     def __init__(self):
 
         # -----------------------------------
-        # LOCAL HARDHAT BLOCKCHAIN
+        # LOAD ENVIRONMENT VARIABLES
         # -----------------------------------
 
-        self.rpc_url = "http://127.0.0.1:8545"
+        project_root = Path(__file__).parent.parent
+
+        # Load blockchain/.env
+        blockchain_env = project_root / "blockchain" / ".env"
+
+        if blockchain_env.exists():
+          load_dotenv(blockchain_env, override=True)
 
         # -----------------------------------
-        # DEPLOYED FACE VERIFICATION CONTRACT
+        # SEPOLIA CONFIGURATION
         # -----------------------------------
 
+        self.rpc_url = os.getenv("SEPOLIA_RPC_URL")
+        self.private_key = os.getenv("SEPOLIA_PRIVATE_KEY")
         self.contract_address = (
-             "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9"
+            "0xbc199bb2f2c18146e8d7562d8fa7c4044abea270"
         )
 
+        if not self.rpc_url:
+            raise ValueError(
+                "SEPOLIA_RPC_URL is not configured."
+            )
+
+        if not self.private_key:
+            raise ValueError(
+                "SEPOLIA_PRIVATE_KEY is not configured."
+            )
+
         # -----------------------------------
-        # HARDHAT LOCAL ACCOUNT #0
+        # VALIDATE PRIVATE KEY
         # -----------------------------------
 
-        self.private_key = (
-            "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-        )
+        self.private_key = self.private_key.strip()
+
+        if not self.private_key.startswith("0x"):
+            self.private_key = "0x" + self.private_key
+
+        if len(self.private_key) != 66:
+            raise ValueError(
+                "SEPOLIA_PRIVATE_KEY must be a 32-byte "
+                "hexadecimal private key."
+            )
 
         # -----------------------------------
-        # CONNECT TO LOCAL BLOCKCHAIN
+        # CONNECT TO SEPOLIA
         # -----------------------------------
 
         self.w3 = Web3(
@@ -40,19 +67,25 @@ class BlockchainService:
 
         if not self.w3.is_connected():
             raise ConnectionError(
-                "Could not connect to Hardhat blockchain."
+                "Could not connect to Ethereum Sepolia."
             )
 
-        print("Connected to Hardhat blockchain.")
+        print("Connected to Ethereum Sepolia.")
 
         # -----------------------------------
         # ACCOUNT
         # -----------------------------------
 
-        self.account = self.w3.eth.accounts[0]
+        self.account = (
+            self.w3.eth.account
+            .from_key(self.private_key)
+        )
+
+        self.account_address = self.account.address
 
         print(
-            f"Using blockchain account: {self.account}"
+            f"Using blockchain account: "
+            f"{self.account_address}"
         )
 
         # -----------------------------------
@@ -60,7 +93,7 @@ class BlockchainService:
         # -----------------------------------
 
         abi_path = (
-            Path(__file__).parent.parent
+            project_root
             / "blockchain"
             / "artifacts"
             / "contracts"
@@ -105,7 +138,7 @@ class BlockchainService:
     ):
         """
         Store discovered web/social-media data
-        hash and source URL on blockchain.
+        hash and source URL on Ethereum Sepolia.
         """
 
         # -----------------------------------
@@ -153,9 +186,15 @@ class BlockchainService:
         # -----------------------------------
 
         nonce = self.w3.eth.get_transaction_count(
-            self.account,
+            self.account_address,
             "pending"
         )
+
+        # -----------------------------------
+        # GET GAS PRICE
+        # -----------------------------------
+
+        gas_price = self.w3.eth.gas_price
 
         # -----------------------------------
         # BUILD TRANSACTION
@@ -168,10 +207,11 @@ class BlockchainService:
                 source_url
             )
             .build_transaction({
-                "from": self.account,
+                "from": self.account_address,
                 "nonce": nonce,
+                "chainId": 11155111,
                 "gas": 500000,
-                "gasPrice": self.w3.eth.gas_price
+                "gasPrice": gas_price
             })
         )
 
@@ -199,7 +239,7 @@ class BlockchainService:
         )
 
         print(
-            f"Blockchain transaction sent: "
+            f"Sepolia blockchain transaction sent: "
             f"{tx_hash.hex()}"
         )
 
@@ -244,7 +284,7 @@ class BlockchainService:
     ):
         """
         Read verification data directly
-        from the blockchain.
+        from Ethereum Sepolia.
         """
 
         result = (
@@ -289,7 +329,7 @@ class BlockchainService:
     ):
         """
         Compare the current data hash with
-        the hash stored on the blockchain.
+        the hash stored on Ethereum Sepolia.
 
         Returns True if both hashes match.
         """
