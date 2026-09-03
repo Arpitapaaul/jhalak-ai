@@ -217,7 +217,7 @@ def main(image_path=None):
     "link": result["link"],
     "score": score,
     "path": str(candidate_path),
-    "image": candidate_path.name,
+    "image": image_url,
     "match": score >= 0.50
 })
 
@@ -238,8 +238,8 @@ def main(image_path=None):
                     "title": result["title"],
                     "source": result["source"],
                     "link": result["link"],
-                    "image": candidate_path.name,
-                    "thumbnail": candidate_path.name,
+                    "image": image_url,
+                    "thumbnail": thumbnail_url,
                     "score": score
                 }
 
