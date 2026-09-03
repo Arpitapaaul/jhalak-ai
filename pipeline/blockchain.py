@@ -194,7 +194,11 @@ class BlockchainService:
         # GET GAS PRICE
         # -----------------------------------
 
-        gas_price = self.w3.eth.gas_price
+        latest_block = self.w3.eth.get_block("latest")
+        base_fee = latest_block["baseFeePerGas"]
+
+        max_priority_fee = self.w3.to_wei(2, "gwei")
+        max_fee = (base_fee * 2) + max_priority_fee    
 
         # -----------------------------------
         # BUILD TRANSACTION
@@ -211,7 +215,8 @@ class BlockchainService:
                 "nonce": nonce,
                 "chainId": 11155111,
                 "gas": 500000,
-                "gasPrice": gas_price
+                "maxPriorityFeePerGas": max_priority_fee,
+                "maxFeePerGas": max_fee
             })
         )
 
