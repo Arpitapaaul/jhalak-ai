@@ -5,7 +5,7 @@ import cv2
 class FaceDetector:
     def __init__(self):
         self.app = FaceAnalysis(
-            name="buffalo_l",
+            name="buffalo_s",
             providers=["CPUExecutionProvider"]
         )
 
