@@ -63,7 +63,7 @@ export default function Home() {
       // -----------------------------------
 
       const response = await fetch(
-        'http://127.0.0.1:8000/verify',
+        'https://jhalak-ai.onrender.com/verify',
         {
           method: 'POST',
           body: formData
@@ -152,7 +152,7 @@ export default function Home() {
     match: false,
     image:
   verificationData?.candidate_image
-    ? `http://127.0.0.1:8000/candidates/${verificationData.candidate_image}`
+    ? 'https://jhalak-ai.onrender.com/candidates/${verificationData.candidate_image}'
     : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=85'
   }
 
@@ -203,7 +203,7 @@ const bestCandidate = verificationData
           ? candidate.score.toFixed(4)
           : '—',
       match: candidate.match === true,
-      image: `http://127.0.0.1:8000/candidates/${candidate.image}`,
+      image: 'https://jhalak-ai.onrender.com/candidates/${candidate.image}',
       link: candidate.link
     }))
   : []
