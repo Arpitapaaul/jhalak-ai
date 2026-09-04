@@ -96,7 +96,7 @@ export default function Home() {
             : '—',
         match: verificationData.match === true,
         image: verificationData?.candidate_image
-          ? ? verificationData.candidate_image
+          ?  verificationData.candidate_image
           : defaultCandidate.image,
       }
     : defaultCandidate
