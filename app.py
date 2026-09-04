@@ -529,7 +529,7 @@ def main(image_path=None):
         "match": is_match,
         "similarity": best_score,
         "source_url": best_match["link"],
-        "candidate_image": best_candidate_path.name,
+        "candidate_image": best_match["image"],
         "candidates": candidate_scores,
         "file_hash": file_hash,
         "blockchain": blockchain_result,
