@@ -203,7 +203,7 @@ const bestCandidate = verificationData
           ? candidate.score.toFixed(4)
           : '—',
       match: candidate.match === true,
-      image: `https://jhalak-ai.onrender.com/candidates/${candidate.image}`,
+      image: candidate.image,
       link: candidate.link
     }))
   : []
