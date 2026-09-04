@@ -182,10 +182,10 @@ const bestCandidate = verificationData
       match:
         verificationData.match === true,
 
-      image:
-        verificationData?.candidate_image
-          ? `https://jhalak-ai.onrender.com/candidates/${verificationData.candidate_image}`
-          : ''
+     image:
+  verificationData?.candidate_image
+    ? verificationData.candidate_image
+    : ''
     }
   : defaultCandidate
 
@@ -203,7 +203,7 @@ const bestCandidate = verificationData
           ? candidate.score.toFixed(4)
           : '—',
       match: candidate.match === true,
-      image: `https://jhalak-ai.onrender.com/candidates/${candidate.image}`,
+      image: candidate.image,
       link: candidate.link
     }))
   : []
