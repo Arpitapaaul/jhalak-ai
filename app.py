@@ -217,7 +217,7 @@ def main(image_path=None):
     "link": result["link"],
     "score": score,
     "path": str(candidate_path),
-    "image": candidate_path.name,
+    "image": thumbnail_url or image_url,
     "match": score >= 0.50
 })
 
@@ -238,8 +238,8 @@ def main(image_path=None):
                     "title": result["title"],
                     "source": result["source"],
                     "link": result["link"],
-                    "image": image_url,
-                    "thumbnail": thumbnail_url,
+                    "image": thumbnail_url or image_url,
+                    "thumbnail": thumbnail_url or image_url,
                     "score": score
                 }
 
@@ -529,7 +529,7 @@ def main(image_path=None):
         "match": is_match,
         "similarity": best_score,
         "source_url": best_match["link"],
-        "candidate_image": best_candidate_path.name,
+        "candidate_image": best_match["image"],
         "candidates": candidate_scores,
         "file_hash": file_hash,
         "blockchain": blockchain_result,
