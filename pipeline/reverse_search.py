@@ -152,13 +152,62 @@ class ReverseImageSearcher:
             "Google Lens search completed."
         )
 
+        # Debug information
+        exact_count = len(
+            results.get(
+                "exact_matches",
+                []
+            )
+        )
+
+        visual_count = len(
+            results.get(
+                "visual_matches",
+                []
+            )
+        )
+
+        print(
+            f"Google Lens results: "
+            f"{exact_count} exact matches, "
+            f"{visual_count} visual matches"
+        )
+
         return results
 
     # -----------------------------------
-    # FIND PUBLIC WEB / SOCIAL RESULTS
+    # DETECT PLATFORM
     # -----------------------------------
 
-    def find_social_results(self, results):
+    def detect_platform(self, link):
+
+        link_lower = link.lower()
+
+        if "instagram.com" in link_lower:
+            return "Instagram"
+
+        elif "facebook.com" in link_lower:
+            return "Facebook"
+
+        elif "linkedin.com" in link_lower:
+            return "LinkedIn"
+
+        elif "github.com" in link_lower:
+            return "GitHub"
+
+        elif "twitter.com" in link_lower:
+            return "Twitter"
+
+        elif "x.com" in link_lower:
+            return "X"
+
+        return "Web"
+
+    # -----------------------------------
+    # CHECK SUPPORTED PUBLIC PLATFORMS
+    # -----------------------------------
+
+    def is_supported_platform(self, link):
 
         social_domains = [
             "instagram.com",
@@ -169,80 +218,225 @@ class ReverseImageSearcher:
             "twitter.com"
         ]
 
+        link_lower = link.lower()
+
+        return any(
+            domain in link_lower
+            for domain in social_domains
+        )
+
+    # -----------------------------------
+    # FIND PUBLIC WEB / SOCIAL RESULTS
+    # -----------------------------------
+
+    def find_social_results(self, results):
+
         social_results = []
 
-        for result in results.get(
-            "visual_matches",
+        # Keep track of links so the same
+        # result is not added twice.
+        seen_links = set()
+
+        # -----------------------------------
+        # 1. EXACT MATCHES
+        # -----------------------------------
+
+        exact_matches = results.get(
+            "exact_matches",
             []
-        ):
+        )
+
+        for result in exact_matches:
 
             link = result.get(
                 "link",
                 ""
             )
 
-            link_lower = link.lower()
+            if not link:
+                continue
 
-            # Check supported public platforms
-            if any(
-                domain in link_lower
-                for domain in social_domains
+            if not self.is_supported_platform(
+                link
             ):
+                continue
 
-                image_url = result.get(
-                    "image"
+            link_key = link.rstrip(
+                "/"
+            ).lower()
+
+            if link_key in seen_links:
+                continue
+
+            # Exact match normally provides
+            # a thumbnail rather than a full
+            # image URL.
+            image_url = result.get(
+                "image"
+            )
+
+            thumbnail_url = result.get(
+                "thumbnail"
+            )
+
+            if not image_url and not thumbnail_url:
+                continue
+
+            seen_links.add(
+                link_key
+            )
+
+            social_results.append({
+
+                "title": result.get(
+                    "title",
+                    "Unknown"
+                ),
+
+                "link": link,
+
+                "image": image_url,
+
+                "thumbnail": thumbnail_url,
+
+                "source": result.get(
+                    "source",
+                    "Unknown"
+                ),
+
+                "platform": self.detect_platform(
+                    link
+                ),
+
+                "match_type": "Exact Match",
+
+                "google_position": result.get(
+                    "position"
                 )
+            })
 
-                thumbnail_url = result.get(
-                    "thumbnail"
+        # -----------------------------------
+        # 2. VISUAL MATCHES
+        # -----------------------------------
+
+        visual_matches = results.get(
+            "visual_matches",
+            []
+        )
+
+        for result in visual_matches:
+
+            link = result.get(
+                "link",
+                ""
+            )
+
+            if not link:
+                continue
+
+            if not self.is_supported_platform(
+                link
+            ):
+                continue
+
+            link_key = link.rstrip(
+                "/"
+            ).lower()
+
+            # Do not add duplicate links
+            if link_key in seen_links:
+                continue
+
+            image_url = result.get(
+                "image"
+            )
+
+            thumbnail_url = result.get(
+                "thumbnail"
+            )
+
+            if not image_url and not thumbnail_url:
+                continue
+
+            seen_links.add(
+                link_key
+            )
+
+            # Google Lens can indicate that
+            # a visual result has an exact match.
+            lens_exact_flag = result.get(
+                "exact_matches",
+                False
+            )
+
+            if lens_exact_flag:
+                match_type = "Exact Match"
+            else:
+                match_type = "Visual Match"
+
+            social_results.append({
+
+                "title": result.get(
+                    "title",
+                    "Unknown"
+                ),
+
+                "link": link,
+
+                "image": image_url,
+
+                "thumbnail": thumbnail_url,
+
+                "source": result.get(
+                    "source",
+                    "Unknown"
+                ),
+
+                "platform": self.detect_platform(
+                    link
+                ),
+
+                "match_type": match_type,
+
+                "google_position": result.get(
+                    "position"
                 )
+            })
 
-                # Skip result if no image exists
-                if not image_url and not thumbnail_url:
-                    continue
+        # -----------------------------------
+        # EXACT MATCHES FIRST
+        # -----------------------------------
 
-                # Detect platform
-                if "instagram.com" in link_lower:
-                    platform = "Instagram"
+        social_results.sort(
+            key=lambda result: (
+                0
+                if result.get(
+                    "match_type"
+                ) == "Exact Match"
+                else 1,
+                result.get(
+                    "google_position"
+                )
+                or 999
+            )
+        )
 
-                elif "facebook.com" in link_lower:
-                    platform = "Facebook"
+        print(
+            f"Public social/web matches found: "
+            f"{len(social_results)}"
+        )
 
-                elif "linkedin.com" in link_lower:
-                    platform = "LinkedIn"
+        for index, result in enumerate(
+            social_results,
+            start=1
+        ):
 
-                elif "github.com" in link_lower:
-                    platform = "GitHub"
-
-                elif "twitter.com" in link_lower:
-                    platform = "Twitter"
-
-                elif "x.com" in link_lower:
-                    platform = "X"
-
-                else:
-                    platform = "Web"
-
-                social_results.append({
-
-                    "title": result.get(
-                        "title",
-                        "Unknown"
-                    ),
-
-                    "link": link,
-
-                    "image": image_url,
-
-                    "thumbnail": thumbnail_url,
-
-                    "source": result.get(
-                        "source",
-                        "Unknown"
-                    ),
-
-                    "platform": platform
-                })
+            print(
+                f"{index}. "
+                f"[{result.get('match_type')}] "
+                f"{result.get('platform')} - "
+                f"{result.get('title')}"
+            )
 
         return social_results
 
@@ -279,7 +473,6 @@ class ReverseImageSearcher:
                 "Mozilla/5.0 "
                 "(Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 "
-                "(KHTML, like Gecko) "
                 "Chrome/131.0 Safari/537.36"
             ),
 
