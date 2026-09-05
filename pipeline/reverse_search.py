@@ -24,18 +24,68 @@ class ReverseImageSearcher:
 
         url = "https://serpapi.com/image"
 
-        with open(image_path, "rb") as image_file:
+        # Open uploaded image
+        image = Image.open(image_path)
 
-            response = requests.post(
-                url,
-                params={
-                    "api_key": self.api_key
-                },
-                files={
-                    "image": image_file
-                },
-                timeout=60
+        # Convert to RGB for JPEG
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+
+        # Resize large images from phone/camera
+        max_size = 1600
+
+        image.thumbnail(
+            (max_size, max_size),
+            Image.LANCZOS
+        )
+
+        # Compress image in memory
+        quality = 85
+
+        while True:
+
+            buffer = BytesIO()
+
+            image.save(
+                buffer,
+                format="JPEG",
+                quality=quality,
+                optimize=True
             )
+
+            image_size_kb = buffer.tell() / 1024
+
+            print(
+                f"Prepared upload image: "
+                f"{image_size_kb:.1f} KB "
+                f"(quality={quality})"
+            )
+
+            # Keep image safely below upload limit
+            if image_size_kb <= 450 or quality <= 40:
+                break
+
+            quality -= 5
+
+        buffer.seek(0)
+
+        print("Uploading compressed image to SerpApi...")
+
+        # Upload JPEG image
+        response = requests.post(
+            url,
+            params={
+                "api_key": self.api_key
+            },
+            files={
+                "image": (
+                    "face.jpg",
+                    buffer,
+                    "image/jpeg"
+                )
+            },
+            timeout=60
+        )
 
         response.raise_for_status()
 
@@ -82,7 +132,9 @@ class ReverseImageSearcher:
             "Uploading image to reverse image search..."
         )
 
-        image_id = self.upload_image(image_path)
+        image_id = self.upload_image(
+            image_path
+        )
 
         print(
             "Image uploaded successfully."
@@ -92,7 +144,9 @@ class ReverseImageSearcher:
             "Searching Google Lens..."
         )
 
-        results = self.search(image_id)
+        results = self.search(
+            image_id
+        )
 
         print(
             "Google Lens search completed."
@@ -227,7 +281,7 @@ class ReverseImageSearcher:
 
                 response.raise_for_status()
 
-                # Check if downloaded content
+                # Check downloaded content
                 # is actually an image
                 image = Image.open(
                     BytesIO(
