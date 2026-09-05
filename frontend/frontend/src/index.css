@@ -70,6 +70,7 @@ button {
 .app-shell {
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
   background-color: var(--bg-app);
   background-image:
     radial-gradient(ellipse at 15% 5%, rgba(29, 78, 216, 0.08), transparent 40%),
@@ -77,6 +78,68 @@ button {
     radial-gradient(ellipse at 50% 80%, rgba(6, 182, 212, 0.06), transparent 50%),
     radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
   background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px;
+}
+
+/* Decorative Background Facial Mesh with Slow Organic Reveal Animation */
+.bg-face-decoration {
+  position: fixed;
+  top: 50px;
+  right: -20px;
+  width: min(540px, 48vw);
+  max-width: 580px;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  mix-blend-mode: multiply;
+  filter: contrast(1.15) saturate(1.2);
+  opacity: 0;
+}
+
+.bg-face-decoration.animated-reveal {
+  animation: slowReveal 4s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             faceMeshBreathe 10s ease-in-out infinite 4s;
+}
+
+@keyframes slowReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(28px);
+    filter: blur(8px) contrast(1.1);
+  }
+  40% {
+    opacity: 0.16;
+    filter: blur(3px) contrast(1.18);
+  }
+  100% {
+    opacity: 0.32;
+    transform: scale(1) translateY(0);
+    filter: blur(0px) contrast(1.2) saturate(1.35);
+  }
+}
+
+@keyframes faceMeshBreathe {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 0.30;
+  }
+  50% {
+    transform: translateY(-14px) rotate(0.8deg) scale(1.025);
+    opacity: 0.38;
+  }
+}
+
+.bg-face-mesh-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .bg-face-decoration {
+    top: 80px;
+    right: -40px;
+    width: min(380px, 65vw);
+  }
 }
 
 /* =========================================================
@@ -148,6 +211,43 @@ button {
   gap: 12px;
 }
 
+.audio-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+  color: var(--text-secondary);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  transition: all 0.2s ease;
+}
+
+.audio-toggle-btn:hover {
+  border-color: var(--brand-blue);
+  transform: translateY(-1px);
+}
+
+.audio-toggle-btn.active {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.audio-toggle-btn.muted {
+  border-color: var(--border-light);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.audio-icon {
+  font-size: 13px;
+}
+
 .secure-chip {
   display: flex;
   align-items: center;
@@ -179,6 +279,8 @@ button {
    DASHBOARD CONTAINER
    ========================================================= */
 .dashboard {
+  position: relative;
+  z-index: 1;
   width: min(1200px, 92vw);
   margin: 0 auto;
   padding: 32px 0 64px;
@@ -268,54 +370,6 @@ button {
   color: var(--brand-red);
   font-weight: 800;
   letter-spacing: 0.04em;
-}
-
-/* Social Pills Row */
-.social-pills-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.social-pills-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.social-pills-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.platform-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: #ffffff;
-  border: 1px solid var(--border-light);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: transform 0.2s, border-color 0.2s;
-}
-
-.platform-pill:hover {
-  transform: translateY(-1px);
-  border-color: var(--border-hover);
-}
-
-.pill-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
 }
 
 /* Hero Status Box */
@@ -1024,57 +1078,48 @@ button {
   font-family: var(--font-mono);
 }
 
-/* Social Radar Chips */
-.scanning-social-radar {
+/* Technical Telemetry Row */
+.scanning-telemetry-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #111827;
+  border-radius: 8px;
+  border: 1px solid #1f2937;
+  flex-wrap: wrap;
 }
 
-.social-radar-label {
+.telemetry-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.telemetry-label {
   font-family: var(--font-mono);
   font-size: 9px;
+  font-weight: 600;
   color: #64748b;
   letter-spacing: 0.08em;
 }
 
-.social-chips-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.social-search-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: #1e293b;
-  border: 1px solid #334155;
+.telemetry-val {
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: #94a3b8;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  color: #e2e8f0;
 }
 
-.social-search-chip.active-searching {
-  background: rgba(6, 182, 212, 0.18);
-  border-color: var(--brand-cyan);
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+.telemetry-val.pulse-cyan {
+  color: var(--brand-cyan);
+  animation: pulse-telemetry 1.5s ease-in-out infinite alternate;
 }
 
-.chip-icon {
-  font-size: 11px;
-}
-
-.chip-ping {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--brand-cyan);
-  box-shadow: 0 0 6px var(--brand-cyan);
-  animation: pulse-dot 0.8s infinite;
+@keyframes pulse-telemetry {
+  from { opacity: 0.7; }
+  to { opacity: 1; text-shadow: 0 0 8px rgba(6, 182, 212, 0.6); }
 }
 
 /* =========================================================
@@ -1700,5 +1745,130 @@ button {
   .app-footer {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+/* =========================================================
+   REACTIVE 60+ FPS BIOMETRIC CURSOR
+   ========================================================= */
+.reactive-cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background-color: #00e5ff;
+  box-shadow: 0 0 8px #00e5ff, 0 0 16px rgba(0, 229, 255, 0.8);
+  pointer-events: none;
+  z-index: 99999;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 0.2s ease, transform 0.04s ease-out, background-color 0.2s ease;
+}
+
+.reactive-cursor-dot.cursor-dot-hover {
+  background-color: var(--brand-red);
+  box-shadow: 0 0 10px var(--brand-red), 0 0 20px rgba(255, 59, 92, 0.8);
+}
+
+.reactive-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(6, 182, 212, 0.65);
+  background-color: rgba(6, 182, 212, 0.03);
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.2);
+  pointer-events: none;
+  z-index: 99998;
+  opacity: 0;
+  will-change: transform, width, height, margin;
+  transition:
+    width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    margin 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+/* 4 Biometric Reticle Corner/Ticks on Ring */
+.cursor-reticle-tick {
+  position: absolute;
+  background-color: #00e5ff;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.tick-top {
+  top: -4px;
+  left: 50%;
+  width: 1px;
+  height: 4px;
+  transform: translateX(-50%);
+}
+
+.tick-bottom {
+  bottom: -4px;
+  left: 50%;
+  width: 1px;
+  height: 4px;
+  transform: translateX(-50%);
+}
+
+.tick-left {
+  left: -4px;
+  top: 50%;
+  width: 4px;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.tick-right {
+  right: -4px;
+  top: 50%;
+  width: 4px;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+/* Hover over interactive element */
+.reactive-cursor-ring.cursor-hover {
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-color: #00e5ff;
+  background-color: rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35), inset 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+.reactive-cursor-ring.cursor-hover .cursor-reticle-tick {
+  background-color: #00e5ff;
+}
+
+/* Click impulse shockwave */
+.reactive-cursor-ring.cursor-clicked {
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-color: var(--brand-red);
+  background-color: rgba(255, 59, 92, 0.15);
+  box-shadow: 0 0 25px rgba(255, 59, 92, 0.6);
+}
+
+.reactive-cursor-ring.cursor-clicked .cursor-reticle-tick {
+  background-color: var(--brand-red);
+}
+
+/* Disable on touch devices */
+@media (hover: none) or (pointer: coarse) {
+  .reactive-cursor-dot,
+  .reactive-cursor-ring {
+    display: none !important;
   }
 }

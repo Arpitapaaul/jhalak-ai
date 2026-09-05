@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import Header from '../components/Header'
 import ImageUpload from '../components/ImageUpload'
@@ -6,20 +6,32 @@ import VerificationResult from '../components/VerificationResult'
 import CandidateList from '../components/CandidateList'
 import FingerprintCard from '../components/FingerprintCard'
 import BlockchainCard from '../components/BlockchainCard'
-
-const SOCIAL_PILLS = [
-  { name: 'Instagram', icon: '📸', color: '#E1306C' },
-  { name: 'X / Twitter', icon: '𝕏', color: '#111827' },
-  { name: 'TikTok', icon: '🎵', color: '#000000' },
-  { name: 'Facebook', icon: '👤', color: '#1877F2' },
-  { name: 'YouTube', icon: '▶', color: '#FF0000' },
-  { name: 'Web & Blogs', icon: '🌐', color: '#2563EB' },
-]
+import ReactiveCursor from '../components/ReactiveCursor'
+import { playWelcomeTune, playSearchSound, playResultSound } from '../utils/audio'
 
 export default function Home() {
   const [loading, setLoading] = useState(false)
   const [complete, setComplete] = useState(false)
   const [verificationData, setVerificationData] = useState(null)
+
+  // ---------------------------------------
+  // PLAY INDIAN WELCOME TUNE ON USER INTERACTION
+  // ---------------------------------------
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      playWelcomeTune()
+    }
+
+    window.addEventListener('click', handleFirstInteraction, { once: true })
+    window.addEventListener('keydown', handleFirstInteraction, { once: true })
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true })
+
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction)
+      window.removeEventListener('keydown', handleFirstInteraction)
+      window.removeEventListener('touchstart', handleFirstInteraction)
+    }
+  }, [])
 
   // ---------------------------------------
   // VERIFY UPLOADED IMAGE
@@ -31,6 +43,9 @@ export default function Home() {
     }
 
     console.log('Uploaded file:', file.name, file.type, file.size)
+
+    // Trigger Indian tabla + scan audio
+    playSearchSound()
 
     setLoading(true)
     setComplete(false)
@@ -59,6 +74,9 @@ export default function Home() {
 
       setVerificationData(data)
       setComplete(true)
+
+      // Trigger triumphant result audio flourish
+      playResultSound()
     } catch (error) {
       console.error('Verification failed:', error)
       alert('Verification request encountered an issue. Check backend logs or try again.')
@@ -74,7 +92,7 @@ export default function Home() {
   const defaultCandidate = {
     rank: 1,
     title: 'Awaiting search input',
-    source: 'Internet & Social Databases',
+    source: 'Internet & Public Databases',
     score: '—',
     match: false,
     image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=85',
@@ -87,16 +105,16 @@ export default function Home() {
     ? {
         rank: 1,
         title: verificationData.source_url
-          ? 'Matching Social Media Profile'
+          ? 'Matching Identity Result'
           : 'No Candidate Found',
-        source: verificationData.source_url ? 'Social Media Index' : '—',
+        source: verificationData.source_url ? 'Public Online Index' : '—',
         score:
           typeof verificationData.similarity === 'number'
             ? `${(verificationData.similarity * 100).toFixed(1)}%`
             : '—',
         match: verificationData.match === true,
         image: verificationData?.candidate_image
-          ?  verificationData.candidate_image
+          ? `https://jhalak-ai.onrender.com/candidates/${verificationData.candidate_image}`
           : defaultCandidate.image,
       }
     : defaultCandidate
@@ -123,6 +141,18 @@ export default function Home() {
 
   return (
     <div className="app-shell">
+      {/* 60+ FPS Reactive Hardware-Accelerated Biometric Cursor */}
+      <ReactiveCursor />
+
+      {/* Decorative Biometric Face Mesh with Slow Organic Reveal Animation */}
+      <div className="bg-face-decoration animated-reveal" aria-hidden="true">
+        <img
+          src="/face-mesh.png"
+          alt=""
+          className="bg-face-mesh-img"
+        />
+      </div>
+
       <Header />
 
       <main className="dashboard">
@@ -142,21 +172,8 @@ export default function Home() {
             </h1>
 
             <p className="hero-tagline">
-              <strong>ONE PHOTO. ALL SOCIALS.</strong> Upload a photo to search across indexed public social profiles, mugshots, and web databases in seconds.
+              Upload a photo to search across indexed public online profiles, mugshots, and web databases in seconds.
             </p>
-
-            {/* Social Network Badges Row */}
-            <div className="social-pills-wrap">
-              <span className="social-pills-label">Indexed Networks:</span>
-              <div className="social-pills-list">
-                {SOCIAL_PILLS.map((p) => (
-                  <span key={p.name} className="platform-pill">
-                    <span className="pill-dot" style={{ background: p.color }} />
-                    <span className="pill-name">{p.name}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
 
           <div className="hero-status-box">
@@ -227,7 +244,7 @@ export default function Home() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      <span>View Social Media Profile</span>
+                      <span>View Source Profile</span>
                       <span className="arrow-icon">↗</span>
                     </a>
                   )}

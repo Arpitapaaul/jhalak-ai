@@ -3,22 +3,13 @@ import { useEffect, useState } from 'react'
 const SCAN_STAGES = [
   { label: 'Detecting facial landmarks & geometry', sub: 'Analyzing 68 facial fiducial coordinates...', percent: 22 },
   { label: 'Generating 512-D neural biometric vector', sub: 'Extracting deep identity embeddings...', percent: 48 },
-  { label: 'Scanning social media databases', sub: 'Querying Instagram, X, TikTok, Facebook...', percent: 76 },
+  { label: 'Scanning visual index registries', sub: 'Searching indexed public face databases...', percent: 76 },
   { label: 'Cross-referencing face clusters & confidence', sub: 'Filtering visual similarity matches...', percent: 94 },
-]
-
-const SOCIAL_PLATFORMS = [
-  { id: 'ig', name: 'Instagram', color: '#E1306C', icon: '📸' },
-  { id: 'x', name: 'X / Twitter', color: '#111827', icon: '𝕏' },
-  { id: 'tt', name: 'TikTok', color: '#00F2FE', icon: '🎵' },
-  { id: 'fb', name: 'Facebook', color: '#1877F2', icon: '👤' },
-  { id: 'yt', name: 'YouTube', color: '#FF0000', icon: '▶' },
 ]
 
 export default function ScanningHUD({ active = true, previewImage }) {
   const [stageIndex, setStageIndex] = useState(0)
   const [progress, setProgress] = useState(12)
-  const [activePlatformIndex, setActivePlatformIndex] = useState(0)
 
   useEffect(() => {
     if (!active) return
@@ -39,14 +30,8 @@ export default function ScanningHUD({ active = true, previewImage }) {
       })
     }, 180)
 
-    // Social platform cycling ticker
-    const socialInterval = setInterval(() => {
-      setActivePlatformIndex((prev) => (prev + 1) % SOCIAL_PLATFORMS.length)
-    }, 700)
-
     return () => {
       clearInterval(progressInterval)
-      clearInterval(socialInterval)
     }
   }, [active, stageIndex])
 
@@ -151,24 +136,19 @@ export default function ScanningHUD({ active = true, previewImage }) {
           <span className="stage-subtitle">{currentStage.sub}</span>
         </div>
 
-        {/* Live Social Search Query Badges */}
-        <div className="scanning-social-radar">
-          <span className="social-radar-label">QUERYING NETWORKS:</span>
-          <div className="social-chips-row">
-            {SOCIAL_PLATFORMS.map((platform, index) => {
-              const isSearching = activePlatformIndex === index
-              return (
-                <div
-                  key={platform.id}
-                  className={`social-search-chip ${isSearching ? 'active-searching' : ''}`}
-                  style={{ '--brand-color': platform.color }}
-                >
-                  <span className="chip-icon">{platform.icon}</span>
-                  <span className="chip-name">{platform.name}</span>
-                  {isSearching && <span className="chip-ping" />}
-                </div>
-              )
-            })}
+        {/* Technical Telemetry Row */}
+        <div className="scanning-telemetry-row">
+          <div className="telemetry-item">
+            <span className="telemetry-label">ALGORITHM</span>
+            <span className="telemetry-val">ResNet-512 ArcFace</span>
+          </div>
+          <div className="telemetry-item">
+            <span className="telemetry-label">KEYPOINTS</span>
+            <span className="telemetry-val">68 Geometric Nodes</span>
+          </div>
+          <div className="telemetry-item">
+            <span className="telemetry-label">SEARCH STATE</span>
+            <span className="telemetry-val pulse-cyan">Deep Cluster Match</span>
           </div>
         </div>
       </div>
