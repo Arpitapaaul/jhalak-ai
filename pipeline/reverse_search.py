@@ -155,7 +155,7 @@ class ReverseImageSearcher:
         return results
 
     # -----------------------------------
-    # FIND ALL SOCIAL MEDIA RESULTS
+    # FIND PUBLIC WEB / SOCIAL RESULTS
     # -----------------------------------
 
     def find_social_results(self, results):
@@ -163,6 +163,8 @@ class ReverseImageSearcher:
         social_domains = [
             "instagram.com",
             "facebook.com",
+            "linkedin.com",
+            "github.com",
             "x.com",
             "twitter.com"
         ]
@@ -179,9 +181,11 @@ class ReverseImageSearcher:
                 ""
             )
 
-            # Check social media domain
+            link_lower = link.lower()
+
+            # Check supported public platforms
             if any(
-                domain in link.lower()
+                domain in link_lower
                 for domain in social_domains
             ):
 
@@ -196,6 +200,28 @@ class ReverseImageSearcher:
                 # Skip result if no image exists
                 if not image_url and not thumbnail_url:
                     continue
+
+                # Detect platform
+                if "instagram.com" in link_lower:
+                    platform = "Instagram"
+
+                elif "facebook.com" in link_lower:
+                    platform = "Facebook"
+
+                elif "linkedin.com" in link_lower:
+                    platform = "LinkedIn"
+
+                elif "github.com" in link_lower:
+                    platform = "GitHub"
+
+                elif "twitter.com" in link_lower:
+                    platform = "Twitter"
+
+                elif "x.com" in link_lower:
+                    platform = "X"
+
+                else:
+                    platform = "Web"
 
                 social_results.append({
 
@@ -213,7 +239,9 @@ class ReverseImageSearcher:
                     "source": result.get(
                         "source",
                         "Unknown"
-                    )
+                    ),
+
+                    "platform": platform
                 })
 
         return social_results
