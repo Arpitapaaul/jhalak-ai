@@ -437,7 +437,8 @@ class ReverseImageSearcher:
                 f"{result.get('platform')} - "
                 f"{result.get('title')}"
             )
-
+        MAX_CANDIDATES = 5
+        social_results = social_results[:MAX_CANDIDATES]
         return social_results
 
     # -----------------------------------
