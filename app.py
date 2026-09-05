@@ -25,7 +25,7 @@ def main(image_path=None):
 
     if image_path is None:
         image_path = (
-            base_path / "sample" / "test.jpg"
+            base_path / "sample" / "test.png"
         )
 
     image_path = Path(image_path)
@@ -196,7 +196,7 @@ def main(image_path=None):
 
         candidate_path = (
             candidates_dir
-            / f"candidate_{index:02d}.jpg"
+            / f"candidate_{index:02d}.png"
         )
 
         try:
@@ -327,7 +327,7 @@ def main(image_path=None):
 
                 # Face threshold
                 "match": (
-                    score >= 0.50
+                    score >= 0.57
                 ),
 
                 # Debug/UI information
@@ -487,7 +487,7 @@ def main(image_path=None):
         "\n[STEP 4] Face Verification"
     )
 
-    threshold = 0.50
+    threshold = 0.57
 
     print(
         f"Verification Threshold: "

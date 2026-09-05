@@ -116,7 +116,7 @@ class FaceMatcher:
     @staticmethod
     def is_match(
         score,
-        threshold=0.50
+        threshold=0.57
     ):
 
         return float(score) >= float(threshold)

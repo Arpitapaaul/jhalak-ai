@@ -6,7 +6,7 @@ import gc
 class FaceDetector:
     def __init__(self):
         self.app = FaceAnalysis(
-            name="buffalo_sc",
+            name="buffalo_l",
             providers=["CPUExecutionProvider"],
             allowed_modules=["detection", "recognition"]
         )
@@ -46,8 +46,6 @@ class FaceDetector:
         # 2. UPSCALE SMALL IMAGES
         # -----------------------------------
 
-        # If no face is found, enlarge the image
-        # and try again.
         if not faces:
 
             scale = 2.0
@@ -65,14 +63,10 @@ class FaceDetector:
                 "Trying 2x upscaled image..."
             )
 
-            upscaled_faces = self._detect(
-                upscaled
-            )
+            upscaled_faces = self._detect(upscaled)
 
             if upscaled_faces:
 
-                # Convert bounding boxes and landmarks
-                # back to original image coordinates.
                 for face in upscaled_faces:
 
                     face.bbox = face.bbox / scale
@@ -85,7 +79,7 @@ class FaceDetector:
             del upscaled
 
         # -----------------------------------
-        # 3. SECOND UPSCALE FOR VERY SMALL FACES
+        # 3. SECOND UPSCALE
         # -----------------------------------
 
         if not faces:
@@ -105,9 +99,7 @@ class FaceDetector:
                 "Trying 3x upscaled image..."
             )
 
-            upscaled_faces = self._detect(
-                upscaled
-            )
+            upscaled_faces = self._detect(upscaled)
 
             if upscaled_faces:
 
@@ -131,7 +123,6 @@ class FaceDetector:
             f"{len(faces)} face(s) detected"
         )
 
-        # Release temporary memory
         del image
         gc.collect()
 
