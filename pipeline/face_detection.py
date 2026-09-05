@@ -11,21 +11,127 @@ class FaceDetector:
             allowed_modules=["detection", "recognition"]
         )
 
-        # Smaller input size = lower CPU/memory usage
+        # Larger detection size helps with small faces
         self.app.prepare(
             ctx_id=-1,
-            det_size=(320, 320)
+            det_size=(640, 640)
         )
+
+    def _detect(self, image):
+        """
+        Run InsightFace detection on an image.
+        """
+        if image is None:
+            return []
+
+        return self.app.get(image)
 
     def detect(self, image_path):
         image = cv2.imread(image_path)
 
         if image is None:
-            raise ValueError(f"Could not read image: {image_path}")
+            raise ValueError(
+                f"Could not read image: {image_path}"
+            )
 
-        faces = self.app.get(image)
+        original_height, original_width = image.shape[:2]
 
-        # Release temporary OpenCV image memory
+        # -----------------------------------
+        # 1. NORMAL DETECTION
+        # -----------------------------------
+
+        faces = self._detect(image)
+
+        # -----------------------------------
+        # 2. UPSCALE SMALL IMAGES
+        # -----------------------------------
+
+        # If no face is found, enlarge the image
+        # and try again.
+        if not faces:
+
+            scale = 2.0
+
+            upscaled = cv2.resize(
+                image,
+                None,
+                fx=scale,
+                fy=scale,
+                interpolation=cv2.INTER_CUBIC
+            )
+
+            print(
+                "No face detected at original size. "
+                "Trying 2x upscaled image..."
+            )
+
+            upscaled_faces = self._detect(
+                upscaled
+            )
+
+            if upscaled_faces:
+
+                # Convert bounding boxes and landmarks
+                # back to original image coordinates.
+                for face in upscaled_faces:
+
+                    face.bbox = face.bbox / scale
+
+                    if hasattr(face, "kps") and face.kps is not None:
+                        face.kps = face.kps / scale
+
+                faces = upscaled_faces
+
+            del upscaled
+
+        # -----------------------------------
+        # 3. SECOND UPSCALE FOR VERY SMALL FACES
+        # -----------------------------------
+
+        if not faces:
+
+            scale = 3.0
+
+            upscaled = cv2.resize(
+                image,
+                None,
+                fx=scale,
+                fy=scale,
+                interpolation=cv2.INTER_CUBIC
+            )
+
+            print(
+                "No face detected at 2x. "
+                "Trying 3x upscaled image..."
+            )
+
+            upscaled_faces = self._detect(
+                upscaled
+            )
+
+            if upscaled_faces:
+
+                for face in upscaled_faces:
+
+                    face.bbox = face.bbox / scale
+
+                    if hasattr(face, "kps") and face.kps is not None:
+                        face.kps = face.kps / scale
+
+                faces = upscaled_faces
+
+            del upscaled
+
+        # -----------------------------------
+        # 4. FINAL RESULT
+        # -----------------------------------
+
+        print(
+            f"Face detection completed: "
+            f"{len(faces)} face(s) detected"
+        )
+
+        # Release temporary memory
         del image
         gc.collect()
 
