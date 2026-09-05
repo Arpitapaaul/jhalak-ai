@@ -12,18 +12,27 @@ def main(image_path=None):
 
     blockchain_result = None
     verification_result = None
+
     print("===================================")
     print("   FaceChain Verify")
     print("===================================")
 
     base_path = Path(__file__).parent
 
+    # -----------------------------------
+    # INPUT IMAGE
+    # -----------------------------------
+
     if image_path is None:
         image_path = (
-            base_path / "sample" / "test.jpg"
+            base_path / "sample" / "test.png"
         )
 
     image_path = Path(image_path)
+
+    # -----------------------------------
+    # CANDIDATE DIRECTORY
+    # -----------------------------------
 
     candidates_dir = (
         base_path / "sample" / "candidates"
@@ -33,9 +42,9 @@ def main(image_path=None):
         exist_ok=True
     )
 
-    # -------------------------------
+    # -----------------------------------
     # STEP 1: FACE DETECTION
-    # -------------------------------
+    # -----------------------------------
 
     print("\n[STEP 1] Face Detection")
 
@@ -55,7 +64,16 @@ def main(image_path=None):
             "❌ No face detected."
         )
 
-        return
+        return {
+            "match": False,
+            "similarity": 0.0,
+            "source_url": None,
+            "candidate_image": None,
+            "candidates": [],
+            "file_hash": None,
+            "blockchain": None,
+            "blockchain_verification": None
+        }
 
     print(
         "✅ Face detected successfully!"
@@ -66,11 +84,12 @@ def main(image_path=None):
         faces[0].embedding.shape
     )
 
+    # Use the first face from uploaded image
     input_face = faces[0]
 
-    # -------------------------------
+    # -----------------------------------
     # STEP 2: REVERSE IMAGE SEARCH
-    # -------------------------------
+    # -----------------------------------
 
     print(
         "\n[STEP 2] Reverse Image Search"
@@ -91,46 +110,68 @@ def main(image_path=None):
     if not social_results:
 
         print(
-            "\n❌ No social media results found."
+            "\n❌ No public web/social results found."
         )
 
-        return
+        return {
+            "match": False,
+            "similarity": 0.0,
+            "source_url": None,
+            "candidate_image": None,
+            "candidates": [],
+            "file_hash": None,
+            "blockchain": None,
+            "blockchain_verification": None
+        }
 
     print(
-        "\n🎯 Social Media Candidates Found:",
+        "\n🎯 Public Web Candidates Found:",
         len(social_results)
     )
 
-    # -------------------------------
+    # -----------------------------------
     # STEP 3: TEST CANDIDATES
-    # -------------------------------
+    # -----------------------------------
 
     print(
         "\n[STEP 3] Testing Candidate Faces"
     )
 
-    best_match = None
-    best_score = -1.0
-    best_candidate_path = None
-
     candidate_scores = []
 
+    # Test more candidates when available.
+    # Exact matches are already placed first
+    # by ReverseImageSearcher.
+    candidates_to_test = social_results[:10]
+
     for index, result in enumerate(
-        social_results[:5],
+        candidates_to_test,
         start=1
     ):
 
         print(
             f"\nCandidate {index}: "
-            f"{result['title']}"
+            f"{result.get('title', 'Unknown')}"
         )
 
         print(
-            f"Source: {result['source']}"
+            f"Platform: "
+            f"{result.get('platform', 'Web')}"
         )
 
         print(
-            f"Post URL: {result['link']}"
+            f"Match Type: "
+            f"{result.get('match_type', 'Visual Match')}"
+        )
+
+        print(
+            f"Source: "
+            f"{result.get('source', 'Unknown')}"
+        )
+
+        print(
+            f"Post URL: "
+            f"{result.get('link', '')}"
         )
 
         image_url = result.get(
@@ -149,13 +190,13 @@ def main(image_path=None):
 
             continue
 
-        # -------------------------------
+        # -----------------------------------
         # UNIQUE CANDIDATE IMAGE
-        # -------------------------------
+        # -----------------------------------
 
         candidate_path = (
             candidates_dir
-            / f"candidate_{index:02d}.jpg"
+            / f"candidate_{index:02d}.png"
         )
 
         try:
@@ -171,9 +212,9 @@ def main(image_path=None):
                 fallback_url=thumbnail_url
             )
 
-            # -------------------------------
+            # -----------------------------------
             # CANDIDATE FACE DETECTION
-            # -------------------------------
+            # -----------------------------------
 
             candidate_faces = detector.detect(
                 str(candidate_path)
@@ -193,55 +234,111 @@ def main(image_path=None):
 
                 continue
 
-            # -------------------------------
-            # FACE SIMILARITY
-            # -------------------------------
+            # -----------------------------------
+            # COMPARE ALL FACES
+            # -----------------------------------
 
-            candidate_face = (
-                candidate_faces[0]
+            print(
+                "Comparing uploaded face "
+                "against all candidate faces..."
             )
 
-            score = FaceMatcher.compare(
+            comparison = FaceMatcher.compare_all(
                 input_face,
-                candidate_face
+                candidate_faces
+            )
+
+            score = comparison["score"]
+
+            best_face_index = comparison[
+                "face_index"
+            ]
+
+            print(
+                f"Best face index: "
+                f"{best_face_index}"
             )
 
             print(
-                f"Face similarity: {score:.4f}"
+                f"Best face similarity: "
+                f"{score:.4f}"
             )
 
+            # -----------------------------------
+            # MATCH TYPE
+            # -----------------------------------
+
+            match_type = result.get(
+                "match_type",
+                "Visual Match"
+            )
+
+            platform = result.get(
+                "platform",
+                "Web"
+            )
+
+            # -----------------------------------
+            # STORE CANDIDATE RESULT
+            # -----------------------------------
+
             candidate_scores.append({
-    "rank": index,
-    "title": result["title"],
-    "source": result["source"],
-    "link": result["link"],
-    "score": score,
-    "path": str(candidate_path),
-    "image": thumbnail_url or image_url,
-    "match": score >= 0.50
-})
 
-            # -------------------------------
-            # BEST CANDIDATE
-            # -------------------------------
+                # Original Google Lens position
+                "google_rank": index,
 
-            if score > best_score:
+                # Final ranking assigned later
+                "rank": None,
 
-                best_score = score
+                "title": result.get(
+                    "title",
+                    "Unknown"
+                ),
 
-                best_candidate_path = (
+                "source": result.get(
+                    "source",
+                    "Unknown"
+                ),
+
+                "link": result.get(
+                    "link",
+                    ""
+                ),
+
+                # Platform
+                "platform": platform,
+
+                # Exact / Visual
+                "match_type": match_type,
+
+                # Face similarity
+                "score": score,
+
+                # Candidate image path
+                "path": str(
                     candidate_path
-                )
+                ),
 
-                best_match = {
-                    "rank": index,
-                    "title": result["title"],
-                    "source": result["source"],
-                    "link": result["link"],
-                    "image": thumbnail_url or image_url,
-                    "thumbnail": thumbnail_url or image_url,
-                    "score": score
-                }
+                # Public candidate image
+                "image": (
+                    thumbnail_url
+                    or image_url
+                ),
+
+                # Face threshold
+                "match": (
+                    score >= 0.57
+                ),
+
+                # Debug/UI information
+                "matched_face_index": (
+                    best_face_index
+                ),
+
+                "faces_detected": (
+                    len(candidate_faces)
+                )
+            })
 
         except Exception as error:
 
@@ -252,21 +349,68 @@ def main(image_path=None):
 
             continue
 
-    # -------------------------------
+    # -----------------------------------
     # NO USABLE CANDIDATE
-    # -------------------------------
+    # -----------------------------------
 
-    if not best_match:
+    if not candidate_scores:
 
         print(
             "\n❌ No usable candidate found."
         )
 
-        return
+        return {
+            "match": False,
+            "similarity": 0.0,
+            "source_url": None,
+            "candidate_image": None,
+            "candidates": [],
+            "file_hash": None,
+            "blockchain": None,
+            "blockchain_verification": None
+        }
 
-    # -------------------------------
-    # STEP 4: BEST CANDIDATE
-    # -------------------------------
+    # -----------------------------------
+    # SORT CANDIDATES
+    #
+    # 1. Exact Match first
+    # 2. Face similarity highest first
+    # -----------------------------------
+
+    candidate_scores.sort(
+        key=lambda candidate: (
+            0
+            if candidate.get(
+                "match_type"
+            ) == "Exact Match"
+            else 1,
+
+            -candidate["score"]
+        )
+    )
+
+    # -----------------------------------
+    # FINAL RANKING
+    # -----------------------------------
+
+    for rank, candidate in enumerate(
+        candidate_scores,
+        start=1
+    ):
+
+        candidate["rank"] = rank
+
+    # -----------------------------------
+    # BEST CANDIDATE
+    # -----------------------------------
+
+    best_match = candidate_scores[0]
+
+    best_score = best_match["score"]
+
+    best_candidate_path = Path(
+        best_match["path"]
+    )
 
     print(
         "\n==================================="
@@ -277,8 +421,27 @@ def main(image_path=None):
     )
 
     print(
-        f"Google Lens Rank: "
+        "==================================="
+    )
+
+    print(
+        f"Final Rank: "
         f"#{best_match['rank']}"
+    )
+
+    print(
+        f"Google Lens Rank: "
+        f"#{best_match['google_rank']}"
+    )
+
+    print(
+        f"Platform: "
+        f"{best_match.get('platform', 'Web')}"
+    )
+
+    print(
+        f"Match Type: "
+        f"{best_match.get('match_type', 'Visual Match')}"
     )
 
     print(
@@ -297,6 +460,16 @@ def main(image_path=None):
     )
 
     print(
+        f"Faces detected in candidate: "
+        f"{best_match['faces_detected']}"
+    )
+
+    print(
+        f"Matched face index: "
+        f"{best_match['matched_face_index']}"
+    )
+
+    print(
         f"Similarity Score: "
         f"{best_match['score']:.4f}"
     )
@@ -306,15 +479,15 @@ def main(image_path=None):
         f"{best_candidate_path}"
     )
 
-    # -------------------------------
-    # STEP 5: FACE VERIFICATION
-    # -------------------------------
+    # -----------------------------------
+    # STEP 4: FACE VERIFICATION
+    # -----------------------------------
 
     print(
-        "\n[STEP 5] Face Verification"
+        "\n[STEP 4] Face Verification"
     )
 
-    threshold = 0.50
+    threshold = 0.57
 
     print(
         f"Verification Threshold: "
@@ -333,7 +506,7 @@ def main(image_path=None):
         )
 
         print(
-            "The best candidate passes "
+            "The best public candidate passes "
             "the demo face-similarity threshold."
         )
 
@@ -348,12 +521,12 @@ def main(image_path=None):
             "demo face-similarity threshold."
         )
 
-    # -------------------------------
-    # STEP 6: DATA FINGERPRINT
-    # -------------------------------
+    # -----------------------------------
+    # STEP 5: DATA FINGERPRINT
+    # -----------------------------------
 
     print(
-        "\n[STEP 6] Data Fingerprint"
+        "\n[STEP 5] Data Fingerprint"
     )
 
     file_hash = calculate_file_hash(
@@ -368,12 +541,12 @@ def main(image_path=None):
         file_hash
     )
 
-    # -------------------------------
-    # STEP 7: VERIFICATION REPORT
-    # -------------------------------
+    # -----------------------------------
+    # STEP 6: VERIFICATION REPORT
+    # -----------------------------------
 
     print(
-        "\n[STEP 7] Verification Report"
+        "\n[STEP 6] Verification Report"
     )
 
     print_verification_report(
@@ -383,12 +556,12 @@ def main(image_path=None):
         file_hash=file_hash
     )
 
-       # -------------------------------
-    # STEP 8: BLOCKCHAIN RECORD
-    # -------------------------------
+    # -----------------------------------
+    # STEP 7: BLOCKCHAIN RECORD
+    # -----------------------------------
 
     print(
-        "\n[STEP 8] Blockchain Verification"
+        "\n[STEP 7] Blockchain Verification"
     )
 
     try:
@@ -509,9 +682,10 @@ def main(image_path=None):
         print(
             error
         )
-        # -------------------------------
+
+    # -----------------------------------
     # COMPLETED
-    # -------------------------------
+    # -----------------------------------
 
     print(
         "\n==================================="
@@ -525,14 +699,25 @@ def main(image_path=None):
         "==================================="
     )
 
+    # -----------------------------------
+    # RETURN RESULT
+    # -----------------------------------
+
     return {
         "match": is_match,
+
         "similarity": best_score,
+
         "source_url": best_match["link"],
+
         "candidate_image": best_match["image"],
+
         "candidates": candidate_scores,
+
         "file_hash": file_hash,
+
         "blockchain": blockchain_result,
+
         "blockchain_verification": verification_result
     }
 
