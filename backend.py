@@ -32,6 +32,7 @@ app.add_middleware(
         "http://localhost:5173",
         "https://jhalak-ai.vercel.app",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -101,7 +102,22 @@ async def verify_face(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    # Run complete face verification pipeline
     result = main(file_path)
+
+    # Handle case when no usable candidate is found
+    if result is None:
+        return {
+            "match": False,
+            "similarity": 0.0,
+            "source_url": None,
+            "candidate_image": None,
+            "candidates": [],
+            "file_hash": None,
+            "blockchain": None,
+            "blockchain_verification": None,
+            "message": "No usable face match found."
+        }
 
     # Convert candidate image URLs into backend-proxied URLs
     for candidate in result.get("candidates", []):
@@ -113,6 +129,8 @@ async def verify_face(file: UploadFile = File(...)):
                 f"?url={quote(image_url, safe='')}"
             )
 
+    # Convert primary candidate image URL
+    # into a backend-proxied URL
     if result.get("candidate_image"):
         result["candidate_image"] = (
             f"{BACKEND_PUBLIC_URL}/proxy-image"
