@@ -6,7 +6,7 @@ import gc
 class FaceDetector:
     def __init__(self):
         self.app = FaceAnalysis(
-            name="buffalo_l",
+            name="buffalo_sc",
             providers=["CPUExecutionProvider"],
             allowed_modules=["detection", "recognition"]
         )
